@@ -17,16 +17,12 @@ public class HL7ParserController : ControllerBase
     [HttpPost]
     public IActionResult HL7MessageConverter([FromBody] HL7Message payload)
     {
-        const string hl7Message = "MSH|^~\\&|SUNS1|OVI02|AZIS|CMD|200606221348||ADT^A01|1049691900|P|2.3\r"
-            + "EVN|A01|200803051509||||200803031508\r"
-            + "PID|||5520255^^^PK^PK~ZZZZZZ83M64Z148R^^^CF^CF~ZZZZZZ83M64Z148R^^^SSN^SSN^^20070103^99991231~^^^^TEAM||ZZZ^ZZZ||19830824|F||||||||||||||||||||||N\r"
-            + "ZPV|Some Custom Notes|Additional custom description of the visit goes here";
-
+        var message = payload.Message;
         var parser = new PipeParser();
 
         try
         {
-            var parsedMessage = parser.Parse(hl7Message, "2.3");
+            var parsedMessage = parser.Parse(message, "2.3");
             var messageHeader = new ADTA01MessageHeader();
             var adtParsedMessage = new ADTA01ParsedMessage();
             var patient = new Patient();
