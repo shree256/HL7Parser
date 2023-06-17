@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography;
-using NHapi.Model.V23.Message;
+﻿using NHapi.Model.V23.Message;
 using NHapi.Model.V23.Segment;
 
 namespace HL7Parser;
@@ -7,6 +6,14 @@ namespace HL7Parser;
 public class HL7Message
 {
     public string? Message { get; set; }
+}
+
+public class Patient
+{
+    public string Id { get; set; }
+    public string Sex { get; set; }
+    public string Name { get; set; }
+    public string Dob { get; set; }
 }
 
 public class ParsedADTA01Model
@@ -28,4 +35,6 @@ public class ADTA01MessageHeader
 public class ADTA01ParsedMessage
 {
     public ADTA01MessageHeader MessageHeader { get; set; }
+    public Patient patient { get; set; }
 }
+

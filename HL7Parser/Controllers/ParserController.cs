@@ -4,6 +4,8 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using NHapi.Base.Parser;
 using NHapi.Model.V23.Message;
+using NHapi.Model.V23.Segment;
+using NHapi.Model.V23.Datatype;
 
 namespace HL7Parser.Controllers;
 
@@ -11,7 +13,6 @@ namespace HL7Parser.Controllers;
 [Route("api/[controller]")]
 public class HL7ParserController : ControllerBase
 {
-    //static ParsedMessageViewModel messageToParse = new ParsedMessageViewModel();
 
     [HttpPost]
     public IActionResult HL7MessageConverter([FromBody] HL7Message payload)
@@ -28,9 +29,11 @@ public class HL7ParserController : ControllerBase
             var parsedMessage = parser.Parse(hl7Message, "2.3");
             var messageHeader = new ADTA01MessageHeader();
             var adtParsedMessage = new ADTA01ParsedMessage();
+            var patient = new Patient();
 
             var adtMessage = parsedMessage as NHapi.Model.V23.Message.ADT_A01;
             var msh = adtMessage.MSH;
+            var pid = adtMessage.PID;
 
             messageHeader.App = msh.SendingApplication.NamespaceID.Value;
             messageHeader.ControlId = msh.MessageControlID.Value;
@@ -39,7 +42,23 @@ public class HL7ParserController : ControllerBase
             messageHeader.Version = msh.VersionID.Value;
             messageHeader.MsgTime = msh.DateTimeOfMessage.TimeOfAnEvent.Value;
 
+
+            var clubbed_ids = "";
+            foreach (CX id in pid.GetPatientIDInternalID()) {
+                clubbed_ids = clubbed_ids + id.ID.Value;
+            }
+
+            foreach (XPN name in pid.GetPatientName()) {
+                var fullname = name.GivenName+", "+name.FamilyName;
+                patient.Name = fullname;
+            }
+
+            patient.Id = clubbed_ids;
+            patient.Dob = pid.DateOfBirth.TimeOfAnEvent.Value;
+            patient.Sex = pid.Sex.Value;
+
             adtParsedMessage.MessageHeader = messageHeader;
+            adtParsedMessage.patient = patient;
 
             string strJson = JsonSerializer.Serialize<ADTA01ParsedMessage>(adtParsedMessage);
             return Ok(strJson);
